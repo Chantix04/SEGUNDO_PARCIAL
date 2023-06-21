@@ -1,0 +1,70 @@
+version: "3"
+
+services:
+  # Nombre del servicio
+  mongodb-database:
+    image: mongo:6.0
+    
+    container_name: mongodb-parcial
+
+    environment:
+    - MONGO_INITDB_ROOT_USERNAME = root
+    - MONGO_INITDB_ROOT_PASSWORD = mypassword
+      
+    
+    ports: 
+      - 27017:27017
+
+    volumes:
+      - ./back-end/dbdata/mongodb:/var/lib/mongodb
+
+  # nombre del servicio
+  mariadb-database:
+    # Imagen a utilizar
+    image: mariadb:10.6.14
+
+    #nombre del contenedor
+    container_name: mariadb-parcial
+
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+
+    # mapeo de puertos
+    # el de la derecha es el que usa el SO del servicio
+    # el de la izquierda es el que usa el windows localmente
+    ports:
+      - 3306:3306
+    
+    volumes: 
+      - ./back-end/dbdata/mariadb:/var/lib/mariadb
+  # Nombre del servicio
+  servidor: 
+    # nombre del contenedor
+    container_name: express-parcial
+    
+    build:
+      # contexto = carpeta donde se encuentra el codigo
+      context: ./back-end
+
+      # ubicar el dockerfile
+      dockerfile: Dockerfile
+
+    environment:
+      PORT: 4000
+      DATABASE_HOST: mariadb-database
+      DATABASE_USER: root
+      DATABASE_PASSWORD: root
+      DATABASE_NAME: test
+    
+    # el contenedor no se iniciará hasta que se inicie la imagen de la BD
+    depends_on:
+      - mariadb-database
+      - mongodb-database
+    # mapeo de puertos
+    ports: 
+      - 4000:4000
+    
+    volumes: 
+      - ./back-end:/parcial
